@@ -149,7 +149,7 @@ namespace Game
                 options.IncludeScopes = true;
                 options.SingleLine = true;
                 options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
-            }).SetMinimumLevel(LogLevel.Information);
+            }).SetMinimumLevel(LogLevel.Error);
         });
 
         public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();

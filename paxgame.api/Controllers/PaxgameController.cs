@@ -25,9 +25,43 @@ public class PaxgameController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<AiResponse>> GenerateResult([FromBody] AiRequest request)
+    public async Task<ActionResult<double>> GenerateResult([FromBody] AiRequest request)
     {
         List<int> State = new List<int>();
+        Player player1 = new Player() { Team = 1, Race = Race.Terran };
+        Player player2 = new Player() { Team = 2, Race = Race.Zerg };
+
+        PaxGame game = new PaxGame();
+        game.GenStyle = false;
+        game.Players.Add(player1);
+        game.Players.Add(player2);
+
+        player1.AddMoves(request.moves[0]);
+        player2.AddMoves(request.moves[1]);
+
+        //while (player2.Minerals < player1.Minerals)
+        //{
+        //    player2.AddRandomMove();
+        //}
+        //if (player2.Minerals > player1.Minerals)
+        //{
+        //    player2.UndoLastMove();
+        //}
+
+        await PlayService.PlayAsync(game, _logger);
+
+        var p1 = player2.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam1 * 100.0 / player2.ArmyValue, 2);
+        var p2 = player1.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam2 * 100.0 / player1.ArmyValue, 2);
+
+        int reward = Convert.ToInt32(p1 - p2);
+
+        return reward;
+    }
+
+    [HttpPost]
+    [Route("moves")]
+    public ActionResult<int[]> GetDotnetMoves([FromBody] AiRequest request)
+    {
         Player player1 = new Player() { Team = 1, Race = Race.Terran };
         Player player2 = new Player() { Team = 2, Race = Race.Zerg };
 
@@ -47,16 +81,6 @@ public class PaxgameController : ControllerBase
         {
             player2.UndoLastMove();
         }
-
-        await PlayService.PlayAsync(game, _logger);
-
-        var p1 = Math.Round(game.ArmyValueKilledTeam1 * 100.0 / player2.ArmyValue, 2);
-        var p2 = Math.Round(game.ArmyValueKilledTeam2 * 100.0 / player1.ArmyValue, 2);
-
-        int reward = Convert.ToInt32(p1 - p2);
-
-        _logger.LogInformation($"result: {p1}|{p2} => {reward}");
-
-        return new AiResponse(player2.Moves.Except(request.moves[1]).ToArray(), reward);
+        return player2.Moves.Except(request.moves[1]).ToArray();
     }
 }
