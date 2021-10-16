@@ -49,7 +49,7 @@ public static class PaxGameService
         }
         if (!player.Units.ContainsKey(unit1))
         {
-            player.Units[unit1] = new List<Vector2>() { boardPos };
+            player.Units[unit1] = new HashSet<Vector2>() { boardPos };
         }
         else
         {
@@ -94,7 +94,7 @@ public static class PaxGameService
         }
         if (!player.Units.ContainsKey(unit1))
         {
-            player.Units[unit1] = new List<Vector2>() { boardPos };
+            player.Units[unit1] = new HashSet<Vector2>() { boardPos };
         }
         else
         {

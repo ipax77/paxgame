@@ -158,7 +158,7 @@ namespace paxgame.app.Server.Controllers
                 boardPosV.Y -= 50;
                 if (!player1.Units.ContainsKey(myUnit))
                 {
-                    player1.Units[myUnit] = new List<Vector2>() { boardPosV };
+                    player1.Units[myUnit] = new HashSet<Vector2>() { boardPosV };
                 }
                 else
                 {
@@ -181,7 +181,7 @@ namespace paxgame.app.Server.Controllers
                 boardPosV.Y += 50;
                 if (!player2.Units.ContainsKey(myUnit))
                 {
-                    player2.Units[myUnit] = new List<Vector2>() { boardPosV };
+                    player2.Units[myUnit] = new HashSet<Vector2>() { boardPosV };
                 }
                 else
                 {
@@ -203,7 +203,7 @@ namespace paxgame.app.Server.Controllers
                 boardPosV.Y += 50;
                 if (!player2.Units.ContainsKey(myUnit))
                 {
-                    player2.Units[myUnit] = new List<Vector2>() { boardPosV };
+                    player2.Units[myUnit] = new HashSet<Vector2>() { boardPosV };
                 }
                 else
                 {

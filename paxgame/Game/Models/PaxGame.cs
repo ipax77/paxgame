@@ -6,6 +6,18 @@ namespace Game.Models
 {
     public class PaxGame
     {
+        public const int buildX = 25;
+        public const int buildY = 15;
+        public const int buildXY = buildX * buildY;
+
+        public const int TerranUnits = 3;
+        public const int TerranUpgrades = 3;
+        public const int ZergUnits = 4;
+        public const int ZergUpgrades = 3;
+
+        public const int boardX = 1000;
+        public const int boardY = 600;
+
         public int Round { get; set; } = 1;
         public int Step { get; set; } = 128;
         public float StepMs { get; set; } = 25;

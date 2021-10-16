@@ -93,7 +93,7 @@ namespace Game
             Player player1 = new Player();
             player1.Team = 1;
             var unit1 = GameUnits.Units.First(f => f.Name == "Marine");
-            player1.Units[unit1] = new List<Vector2>() { new Vector2(20, 10) };
+            player1.Units[unit1] = new HashSet<Vector2>() { new Vector2(20, 10) };
             for (int i = 1; i < 20; i++)
             {
                 player1.Units[unit1].Add(new Vector2(20, 10 + (i * 20)));
@@ -102,7 +102,7 @@ namespace Game
             Player player2 = new Player();
             player2.Team = 2;
             var unit2 = GameUnits.Units.First(f => f.Name == "Zergling");
-            player2.Units[unit2] = new List<Vector2>() { new Vector2(960, 15) };
+            player2.Units[unit2] = new HashSet<Vector2>() { new Vector2(960, 15) };
             for (int i = 1; i < 20; i++)
             {
                 player2.Units[unit2].Add(new Vector2(960, 200 + (i * 20)));

@@ -22,6 +22,13 @@ namespace Game.Services
             {
                 game.Team1.Set(game.BattleUnits.Where(x => x.Team == 1).ToList());
                 game.Team2.Set(game.BattleUnits.Where(x => x.Team == 2).ToList());
+
+                if (!game.GenStyle && (!game.Team1.Units.Any() || !game.Team2.Units.Any()))
+                {
+                    Program.logger.LogInformation($"Breaking game at {game.Gameloop}");
+                    break;
+                }
+
                 game.Team1.Units.Add(game.Base1);
                 game.Team2.Units.Add(game.Base2);
 
