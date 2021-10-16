@@ -1,0 +1,38 @@
+﻿@page "/game"
+
+@using System.Text.Json
+@using paxgame.Shared
+@inject HttpClient Http
+@inject ILogger<GamePage> logger
+
+<h3>GamePage</h3>
+
+@if (game != null)
+{
+	<PlaygroundComponent game="game"></PlaygroundComponent>
+}
+else
+{
+	<p>Loading ...</p>
+}
+
+@code {
+	GameResult game;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+	}
+
+	async Task LoadData()
+	{
+		try
+		{
+			game = await Http.GetFromJsonAsync<GameResult>("api/v1/paxgame");
+		}
+		catch (Exception e)
+		{
+			logger.LogError($"Failed getting game data: {e.Message}");
+		}
+	}
+}

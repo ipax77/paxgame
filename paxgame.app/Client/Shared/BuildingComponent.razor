@@ -1,0 +1,96 @@
+﻿@using System.Globalization
+
+@if (Playing)
+{
+	<PlaygroundComponent game="gameResult" onClose="StopPlaying"></PlaygroundComponent>
+}
+else
+{
+	<div class="sticky-top topinfo">
+		<div class="d-inline-flex justify-content-start align-content-center bg-light rounded p-1">
+			<div>
+				<button type="button" class="btn btn-danger" @onclick="@(async() => Animate())">Play</button>
+			</div>
+			<div class="ms-2">
+				<img src="images/pax_mins.png" alt="mins" />
+				<span class="text-primary">@playerService.Minerals</span>
+			</div>
+			@if (playerService.SelectedUnit != null)
+			{
+				<div class="ms-2">
+					<div class="d-flex align-items-center">
+						<div class="ms-2 rounded bg-primary">
+							<img src="@($"images/pax_{playerService.SelectedUnit.Name.ToLower()}.png")" alt="@playerService.SelectedUnit.Name" height=20 width=20 />
+						</div>
+						<div class="ms-1 text-primary">
+							<small>@playerService.SelectedUnit.Name</small>
+						</div>
+					</div>
+				</div>
+			}
+			else if (selectedUnit != null)
+			{
+				<div class="ms-2">
+					<div class="d-flex align-items-center">
+						<div class="ms-2 rounded bg-primary">
+							<img src="@($"images/pax_{selectedUnit.Unit.Name.ToLower()}.png")" alt="@selectedUnit.Unit.Name" height=20 width=20 />
+						</div>
+						<div class="ms-1 text-primary">
+							<small>@selectedUnit.Unit.Name selected (@selectedUnit.BuildPos.X|@selectedUnit.BuildPos.Y)</small>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+@*	<div class="btn-group">
+		<button type="button" class="btn btn-sm btn-primary" @onclick="DebugClear">Clear</button>
+		<button type="button" class="btn btn-sm btn-primary" @onclick="@(async() => Play())">Play</button>
+		<button type="button" class="btn btn-sm btn-primary" @onclick="@(async() => Animate())">Anim</button>
+	</div>
+*@
+	@if (playerService.AvailabelUnits != null)
+	{
+		<UnitSelectComponent Units="playerService.AvailabelUnits" onUnitSelected="UnitSelected"></UnitSelectComponent>
+	}
+	<ul class="nav nav-tabs mt-1">
+		<li class="nav-item">
+			<span class="nav-link pointer @(buildToggle ? "text-white-50" : "")" @onclick="@(() => buildToggle = false)">Your Build</span>
+		</li>
+		<li>
+			<span class="nav-link pointer @(!buildToggle ? "text-white-50" : "")" @onclick="@(() => buildToggle = true)">Opponent Build</span>
+		</li>
+	</ul>
+	<div id="builddiv" class="buildarea @(buildToggle ? "oppmod" : "") @(startPlaying ? "morvebuildarea" : "")" @onclick="BuildUnit">
+		@if (!buildToggle)
+		{
+			@foreach (var unit in playerService.Units)
+			{
+				<div class="position-absolute @(unit == highlightUnit ? "border border-warning" : "")" @onclick:preventDefault @onclick:stopPropagation @onmouseover="e => MouseOver(unit)" @onclick="e => UnitClick(unit)" style="top: @(unit.ScreenPos.Y.ToString(CultureInfo.InvariantCulture))%; left: @(unit.ScreenPos.X.ToString(CultureInfo.InvariantCulture))%;">
+					<img src="@($"images/pax_{unit.Unit.Name.ToLower()}.png")" alt="@unit.Unit.Name" class="unitimg" />
+				</div>
+			}
+		}
+		else
+		{
+			@foreach (var unit in playerService.OpponentUnits)
+			{
+				<div class="position-absolute @(unit == highlightUnit ? "border border-warning" : "")" @onclick:preventDefault @onclick:stopPropagation @onmouseover="e => MouseOver(unit)" style="top: @(unit.ScreenPos.Y.ToString(CultureInfo.InvariantCulture))%; left: @(unit.ScreenPos.X.ToString(CultureInfo.InvariantCulture))%;">
+					<img src="@($"images/pax_{unit.Unit.Name.ToLower()}.png")" alt="@unit.Unit.Name" class="unitimg" />
+				</div>
+			}
+		}
+		<span class="oi oi-arrow-bottom position-absolute" style="opacity: 0.4; font-size: 2vw; top: 4%; left: 1vw;"></span>
+		<span class="oi oi-arrow-bottom position-absolute" style="opacity: 0.4; font-size: 2vw; top: 4%; right: 1vw;"></span>
+		<span class="oi oi-arrow-bottom position-absolute" style="opacity: 0.4; font-size: 2vw; top: 90%; left: 1vw;"></span>
+		<span class="oi oi-arrow-bottom position-absolute" style="opacity: 0.4; font-size: 2vw; top: 90%; right: 1vw;"></span>
+	</div>
+	<div class="btn-group">
+		@if (playerService.Units.Where(x => !x.Fixed).Any())
+		{
+			<button type="button" class="btn btn-outline-warning" @onclick="Undo"><span class="oi oi-oi-action-undo"></span> Undo</button>
+		}
+	</div>
+}
+

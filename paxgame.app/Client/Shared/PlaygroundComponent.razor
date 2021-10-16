@@ -1,0 +1,134 @@
+﻿@using System.Numerics
+@using System.Globalization
+@using System.Diagnostics
+@using paxgame.Shared
+@using paxgame.Shared.Services
+@inject IJSRuntime _js
+@inject ILogger<PlaygroundComponent> logger
+
+<style>
+	.paused {
+		animation-play-state: paused;
+	}
+
+	.unitanimation {
+
+	}
+
+	.oppteamimg {
+		transform: scale(-1);
+	}
+
+	@Style
+</style>
+
+<div>
+	<div class="btn-group">
+		<button type="button" class="btn btn-danger" @onclick="@(() => onClose.InvokeAsync())">Close</button>
+		<button type="button" class="btn btn-primary" @onclick="Replay">Replay</button>
+		<button type="button" class="btn btn-primary" @onclick="StartStop">@PauseButton</button>
+		@if (playAnimation == false)
+		{
+			/*<button type="button" class="btn btn-primary" @onclick="StepBackward">&larr;</button>	*/
+			<button type="button" class="btn btn-primary" @onclick="StepForward">&rarr;</button>	
+		}
+	</div>
+	<div>
+	@if (game != null) 
+	{
+/*	    <label for="customRange3" class="form-label">Gameloop @GameLoop/@game.Loop</label>
+		<div class="d-flex align-items-center mb-1">
+			<button type="button" class="btn btn-sm btn-secondary" @onclick="@(() => GameLoop -= game.Step)">&larr;</button>
+			<button type="button" class="btn btn-sm btn-secondary mx-2" @onclick="@(() => GameLoop += game.Step)">&rarr;</button>
+			<input type="range" class="form-range" min="0" max="@game.Loop" step="@game.Step" id="customRange3" @bind-value="GameLoop">
+		</div>*/
+		<div>
+			<h4><span>Team1 ArmyValueKilled: @game.ArmyValueKilledTeam1</span></h4>
+			<h4><span>Team2 ArmyValueKilled: @game.ArmyValueKilledTeam2</span></h4>
+		</div>
+	}
+	</div>
+	@*<div class="position-relative" style="width: 1000px; height: 600px; background-color: #5e6cb5;">*@
+
+	<div class="position-relative buildarea">
+		@if (game != null)
+		{
+			@for (int i = 0; i < game.Units.Count; i++)
+			{
+				@if (GameLoop <= 0)
+				{
+					int wh = game.Units[i].Size switch
+					{
+						1 => 20,
+						2 => 30,
+						3 => 40,
+						_ => 20
+					};
+					<div id="@($"u{i}i")" class="position-absolute @(game.Units[i].Team == 1 ? "" : "oppteamimg") @($"u{game.Units[i].Id}c") unitanimation">
+						<img src="images/@(game.Units[i].ImageName.ToLower()).png" width="@wh" height="@wh" />
+					</div>
+					@for (int j = 0; j < game.Units[i].AbilityPath.Count; j++)
+					{
+						<div class="position-absolute  @($"u{game.Units[i].Id}_{j}a") unitanimation" style="opacity: 0; top: @((MathF.Round((game.Units[i].AbilityPath[j].Pos.Y - wh) * 100f / 600f, 2)).ToString(CultureInfo.InvariantCulture))%; left: @((MathF.Round((game.Units[i].AbilityPath[j].Pos.X - wh/2) * 100f / 1000f, 2)).ToString(CultureInfo.InvariantCulture))%;">
+							<img src="images/ability@(game.Units[i].AbilityPath[j].Ability.ToLower()).png" width="20" height="20" />
+						</div>
+					}
+				}
+				else
+				{
+					<div id="@($"u{i}iii")" class="position-absolute @(game.Units[i].Team == 1 ? "" : "oppteamimg") @($"u{game.Units[i].Id}t")" style="offset-distance: @(game.Units[i].GetOffset(GameLoop).ToString(CultureInfo.InvariantCulture))%; opacity: @(game.Units[i].GetOpacity(GameLoop, game.Step));">
+						<img src="images/pax_@(game.Units[i].Name.ToLower()).png" width="40" height="40" />
+					</div>
+				}
+			}
+		}
+	</div>
+</div>
+
+
+@code {
+	[Parameter]
+	public GameResult game { get; set; }
+
+	[Parameter]
+	public EventCallback onClose { get; set; }
+
+	int GameLoop = 0;
+	string Style = String.Empty;
+
+	bool playAnimation = true;
+	string PauseButton => playAnimation ? "Pause" : "Play";
+	string PauseCss => playAnimation ? "" : "paused";
+
+	protected override void OnInitialized()
+	{
+		Style = StringCompression.Decompress(game.Style);
+		base.OnInitialized();
+	}
+
+	void StartStop()
+	{
+		playAnimation = !playAnimation;
+		_js.InvokeVoidAsync("toggleAnimation", playAnimation);
+	}
+
+	void StepForward()
+	{
+		_js.InvokeVoidAsync("moveAnimation", true);
+	}
+
+	void StepBackward()
+	{
+		_js.InvokeVoidAsync("moveAnimation", false);
+	}
+
+	async void Replay()
+    {
+        GameLoop = 128;
+		playAnimation = true;
+		await InvokeAsync(() => StateHasChanged());
+        await Task.Delay(10);
+        GameLoop = 0;
+        await InvokeAsync(() => StateHasChanged());
+    }
+}

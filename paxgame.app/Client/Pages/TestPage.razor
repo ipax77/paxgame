@@ -1,0 +1,109 @@
+﻿@page "/test"
+
+@using System.Text
+@using paxgame.Shared.Services
+@using paxgame.app.Client.Models
+
+@inject IJSRuntime _js
+@implements IDisposable
+
+<style>
+	.buildarea {
+		position: relative;
+		width: 1000px;
+		height: 600px;
+		background-color: #5e6cb5;
+		border: 2px solid white;
+	}
+
+	@@media (max-width: 1200px) {
+		.buildarea {
+			position: relative;
+			width: 90vw;
+			height: calc(90 * 0.6vw);
+			background-color: #5e6cb5;
+			border: 2px solid white;
+		}
+	}
+
+	@Style
+</style>
+
+<h3>TestPage</h3>
+
+<div id="builddiv" class="position-relative buildarea">
+	@if (doAnimation)
+		{
+			<div class="position-absolute u1c unitanimation">
+				<img src="images/pax_marine.png" height=20 width=20 />
+	</div>
+	}
+</div>
+
+@code {
+		string Style = String.Empty;
+
+		private DotNetObjectReference<TestPage>? objRef;
+		double buildX = 25;
+		double buildY = 15;
+		double offsetX = 1000;
+		double offsetY = 600;
+		bool doAnimation = false;
+
+		protected override void OnInitialized()
+		{
+			objRef = DotNetObjectReference.Create(this);
+
+			StringBuilder sb = new StringBuilder();                
+			sb.Append($".u1c{{");
+
+			sb.Append($"offset-path:path('M200,500 L100,200 L200,300 L500,500 L800,100');");
+			sb.Append($"animation:u1a 10s linear 0s forwards");
+			sb.Append(";}");
+
+			sb.Append($"@keyframes u1a");
+			sb.Append("{from{offset-distance:0%;}");
+			sb.Append("to{offset-distance:100%;}}");
+
+			Style = sb.ToString();
+			base.OnInitialized();
+		}
+
+		protected override void OnAfterRender(bool firstRender)
+		{
+			if (firstRender)
+			{
+				GetBuildSize();
+			}
+			base.OnAfterRender(firstRender);
+		}
+
+		private async Task GetBuildSize()
+		{
+			var result = await _js.InvokeAsync<BoundingClientRect>("getBuildSize", "builddiv", objRef);
+			if (result != null)
+			{
+				offsetX = result.Width;
+				offsetY = result.Height;
+
+				Style = StyleService.ModStyle(Style, offsetX, offsetY);
+
+				doAnimation = true;
+				await InvokeAsync(() => StateHasChanged());
+			}
+		}
+
+		[JSInvokable]
+		public void GetResizeInfo(BoundingClientRect rect)
+		{
+			offsetX = rect.Width;
+			offsetY = rect.Height;
+		}
+
+		public void Dispose()
+		{
+			objRef?.Dispose();
+			_js.InvokeVoidAsync("dotnetDispose");
+		}
+	
+}

@@ -1,0 +1,43 @@
+﻿@using paxgame.Shared
+
+
+<div class="">
+	<div class="d-flex align-items-baseline">
+		<div>
+			<h4 class="text-white-50">Select Unit </h4>
+		</div>
+	</div>
+	<div class="d-inline-flex justify-content-start border rounded p-2 bg-secondary">
+		@if (Units != null)
+		{
+			<div class="pointer border rounded bg-primary align-self-center mx-3 p-2" @onclick="e => SelectUnit(null)">
+				<span class="oi oi-circle-x text-danger"></span>
+			</div>
+
+			@foreach (var unit in Units)
+			{
+				<div class="pointer mx-3 bg-primary border rounded @(selectedUnit == unit ? "border-warning" : "") p-2" @onclick="e => SelectUnit(unit)">
+					<div>@unit.Name</div>
+					<div><img src="images/pax_mins.png" /> @unit.Cost</div>
+				</div>
+			}
+		}
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public List<UnitResult>? Units { get; set; }
+
+	[Parameter]
+	public EventCallback<UnitResult?> onUnitSelected { get; set; }
+
+	private UnitResult? selectedUnit = null;
+
+	public void SelectUnit(UnitResult? unit)
+	{
+		selectedUnit = unit;
+		onUnitSelected.InvokeAsync(unit);
+	}
+}
