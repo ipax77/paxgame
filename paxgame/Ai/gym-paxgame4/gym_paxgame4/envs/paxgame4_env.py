@@ -61,7 +61,7 @@ class paxgame4Env(gym.Env):
             units = zergunits
 
         if splayer.state[move] > 0:
-            reward = -1000.0
+            reward = -1.0
             done = True
         else:
             splayer.state[move] = unit

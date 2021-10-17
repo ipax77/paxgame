@@ -5,7 +5,7 @@ namespace Game.Services
 {
     public class PlayService
     {
-        public static async Task PlayAsync(PaxGame game, ILogger logger, int threads = 8)
+        public static async Task PlayAsync(PaxGame game, ILogger logger, bool shuffle = false, int threads = 8)
         {
             game.Init();
             SemaphoreSlim sem = new SemaphoreSlim(threads, threads);
@@ -25,15 +25,17 @@ namespace Game.Services
 
                 if (!game.GenStyle && (!game.Team1.Units.Any() || !game.Team2.Units.Any()))
                 {
-                    Program.logger.LogInformation($"Breaking game at {game.Gameloop}");
+                    Program.logger.LogDebug($"Breaking game at {game.Gameloop}");
                     break;
                 }
 
                 game.Team1.Units.Add(game.Base1);
                 game.Team2.Units.Add(game.Base2);
 
-                game.BattleUnits.Shuffle();
-
+                if (shuffle)
+                {
+                    game.BattleUnits.Shuffle();
+                }
 
                 EventWaitHandle ewh = new EventWaitHandle(false, EventResetMode.ManualReset);
                 int unitsDone = 0;
@@ -67,7 +69,7 @@ namespace Game.Services
 
                 if (game.Gameloop > 200000)
                 {
-                    Program.logger.LogInformation($"Breaking game at maxLoop");
+                    Program.logger.LogDebug($"Breaking game at maxLoop");
                     break;
                 }
             }
@@ -99,16 +101,15 @@ namespace Game.Services
                     unit.Hits.TryTake(out hit);
                 }
 
-                if (killer != null && killer.Unit.Name != "Base")
-                {
-                    if (unit.Team == 1)
-                        game.ArmyValueKilledTeam2 += unit.Unit.Cost;
-                    else
-                        game.ArmyValueKilledTeam1 += unit.Unit.Cost;
-                }
-           
                 if (unit.BattleDefence.BattleHealthpoints <= 0)
                 {
+                    if (killer != null && killer.Unit.Name != "Base")
+                    {
+                        if (unit.Team == 1)
+                            game.ArmyValueKilledTeam2 += unit.Unit.Cost;
+                        else
+                            game.ArmyValueKilledTeam1 += unit.Unit.Cost;
+                    }
                     unit.BattleAbilities.Where(x => x.Value.Ability.Trigger.Contains(AbilityTrigger.Death)).ToList().ForEach(x => x.Value.Trigger(unit, unit.TargetUnit, game));
                     game.DisabledUnits.Add(unit);
                     game.BattleUnits.Remove(unit);
@@ -122,7 +123,7 @@ namespace Game.Services
             }
         }
 
-        public static void Play(PaxGame game)
+        public static void Play(PaxGame game, bool shuffle = false)
         {
             game.Init();
 
@@ -133,7 +134,8 @@ namespace Game.Services
                 game.Team1.Units.Add(game.Base1);
                 game.Team2.Units.Add(game.Base2);
 
-                game.BattleUnits.Shuffle();
+                if (shuffle)
+                    game.BattleUnits.Shuffle();
 
                 foreach (var unit in game.BattleUnits.ToArray())
                 {
@@ -150,7 +152,7 @@ namespace Game.Services
 
                 if (game.Gameloop > 200000)
                 {
-                    Program.logger.LogInformation($"Breaking game at maxLoop");
+                    Program.logger.LogDebug($"Breaking game at maxLoop");
                     break;
                 }
             }

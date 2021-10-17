@@ -41,6 +41,9 @@ namespace paxgame.app.Client.Shared
         bool startPlaying = false;
         bool Playing = false;
 
+        string player1Moves;
+        string player2Moves;
+
         protected override async Task OnInitializedAsync()
         {
             objRef = DotNetObjectReference.Create(this);
@@ -71,8 +74,19 @@ namespace paxgame.app.Client.Shared
         {
             playerService.Units.Clear();
             playerService.Moves.Clear();
+            playerService.OpponentUnits.Clear();
+            playerService.OpponentMoves.Clear();
             playerService.Minerals = 0;
             gameResult = null;
+            StateHasChanged();
+        }
+
+        private void SetPlayerMoves()
+        {
+            playerService.Moves = player1Moves.Split(",").Select(s => int.Parse(s)).ToHashSet();
+            playerService.Units = playerService.Moves.Select(s => GetUnit(s, "Terran")).ToList();
+            playerService.OpponentMoves = player2Moves.Split(",").Select(s => int.Parse(s)).ToHashSet();
+            playerService.OpponentUnits = playerService.OpponentMoves.Select(s => GetUnit(s, "Zerg")).ToList();
             StateHasChanged();
         }
 
@@ -167,7 +181,7 @@ namespace paxgame.app.Client.Shared
                 {
                     playerService.Units.ForEach(f => f.Fixed = true);
                     playerService.OpponentMoves = gameResult.PlayerMoves[1].ToHashSet();
-                    playerService.OpponentUnits = gameResult.PlayerMoves[1].Select(s => GetUnit(s)).ToList();
+                    playerService.OpponentUnits = gameResult.PlayerMoves[1].Select(s => GetUnit(s, "Zerg")).ToList();
                     startPlaying = false;
                     Playing = true;
                     await InvokeAsync(() => StateHasChanged());
@@ -182,12 +196,21 @@ namespace paxgame.app.Client.Shared
             InvokeAsync(() => StateHasChanged());
         }
 
-        private PlayerUnit GetUnit(int move)
+        private PlayerUnit GetUnit(int move, string race)
         {
             (int unitId, myVector2 buildPos) = AiService.GetUnitPos(move);
             var screenPos = new myVector2() { X = Convert.ToInt32(buildPos.X * 100f / buildX), Y = Convert.ToInt32(buildPos.Y * 100f / buildY) };
-
-            return new PlayerUnit(playerService.AvailabelOpponentUnits.First(f => f.UnitId == unitId), buildPos, screenPos);
+            if (race == "Zerg")
+            {
+                return new PlayerUnit(playerService.AvailabelOpponentUnits.First(f => f.UnitId == unitId), buildPos, screenPos);
+            } else if (race == "Terran")
+            {
+                return new PlayerUnit(playerService.AvailabelUnits.First(f => f.UnitId == unitId), buildPos, screenPos);
+            } else
+            {
+                return new PlayerUnit(playerService.AvailabelUnits.First(f => f.UnitId == unitId), buildPos, screenPos);
+            }
+            
         }
 
         private void MouseOver(PlayerUnit unit)

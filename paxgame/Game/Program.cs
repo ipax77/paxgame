@@ -20,24 +20,120 @@ namespace Game
 
         public static void Main(string[] args)
         {
-
-            logger.LogInformation("Hello World");
-            GameUnits gameUnits = new GameUnits();
             
-            List<double> playTimes = new List<double>();
-            // Console.ReadLine();
-            Stopwatch sw = new Stopwatch();
-            for (int i = 0; i < 10; i++)
+            
+            for (int i = 0; i < 20; i++)
             {
-                sw.Start();
-                PlayGame(true);
-                sw.Stop();
-                playTimes.Add(sw.ElapsedMilliseconds);
-                sw.Reset();
+                List<KeyValuePair<double, double>> results = new List<KeyValuePair<double, double>>();
+                List<double> times = new List<double>();
+                (int[][] moves, double[] result) = PlayRandomGameAsync(1000, new int[2][] { new int[0], new int[0] }).GetAwaiter().GetResult();
+                logger.LogInformation($"player1 moves: {String.Join(",", moves[0])}");
+                logger.LogInformation($"player2 moves: {String.Join(",", moves[1])}");
+                Stopwatch sw = new Stopwatch();
+                
+                for (int j = 0; j < 100; j++)
+                {
+                    sw.Start();
+                    (_, result) = PlayRandomGameAsync(1000, new int[2][] { moves[0], moves[1] }).GetAwaiter().GetResult();
+                    sw.Stop();
+                    results.Add(new KeyValuePair<double, double>(result[0], result[1]));
+                    times.Add(sw.ElapsedMilliseconds);
+                    sw.Reset();
+                }
+                logger.LogInformation($"AsyncResults {results.Select(s => s.Key).Average()}|{results.Select(s => s.Value).Average()} ({results.Select(s => s.Key).Min()}|{results.Select(s => s.Value).Min()}|{results.Select(s => s.Key).Max()}|{results.Select(s => s.Value).Max()}) - {Math.Round(times.Average(), 2)}ms");
+                results.Clear();
+                times.Clear();
+                for (int j = 0; j < 10; j++)
+                {
+                    sw.Start();
+                    (_, result) = PlayRandomGame(1000, new int[2][] { moves[0], moves[1] });
+                    sw.Stop();
+                    results.Add(new KeyValuePair<double, double>(result[0], result[1]));
+                    times.Add(sw.ElapsedMilliseconds);
+                    sw.Reset();
+                }
+                logger.LogInformation($"SyncResults {results.Select(s => s.Key).Average()}|{results.Select(s => s.Value).Average()} ({results.Select(s => s.Key).Min()}|{results.Select(s => s.Value).Min()}|{results.Select(s => s.Key).Max()}|{results.Select(s => s.Value).Max()}) - {Math.Round(times.Average(), 2)}ms");
             }
-            logger.LogInformation($"Playtimes: {playTimes.Average()}ms ({playTimes.Min()}|{playTimes.Max()})");
+
+
 
             Console.ReadLine();
+        }
+
+        public static (int[][], double[]) PlayRandomGame(int minerals, int[][] moves, bool shuffle = true)
+        {
+            Player player1 = new Player() { Team = 1, Race = Race.Terran };
+            Player player2 = new Player() { Team = 2, Race = Race.Zerg };
+
+            PaxGame game = new PaxGame();
+            game.GenStyle = false;
+            game.Players.Add(player1);
+            game.Players.Add(player2);
+
+            player1.AddMoves(moves[0]);
+            player2.AddMoves(moves[1]);
+
+            while (player1.Minerals < minerals)
+            {
+                player1.AddRandomMove();
+            }
+            if (player1.Minerals > minerals)
+            {
+                player1.UndoLastMove();
+            }
+
+            while (player2.Minerals < minerals)
+            {
+                player2.AddRandomMove();
+            }
+            if (player2.Minerals > player1.Minerals)
+            {
+                player2.UndoLastMove();
+            }
+
+            PlayService.Play(game, shuffle);
+
+            return (new int[2][] { player1.Moves.ToArray(), player2.Moves.ToArray() }, new double[2] { game.ArmyValueKilledTeam1, game.ArmyValueKilledTeam2 });
+        }
+
+        public static async Task<(int[][], double[])> PlayRandomGameAsync(int minerals, int[][] moves, bool shuffle = true)
+        {
+            Player player1 = new Player() { Team = 1, Race = Race.Terran };
+            Player player2 = new Player() { Team = 2, Race = Race.Zerg };
+
+            PaxGame game = new PaxGame();
+            game.GenStyle = false;
+            game.Players.Add(player1);
+            game.Players.Add(player2);
+
+            if (moves[0].Any())
+            {
+                player1.AddMoves(moves[0]);
+                player2.AddMoves(moves[1]);
+            }
+            else
+            {
+                while (player1.Minerals < minerals)
+                {
+                    player1.AddRandomMove();
+                }
+                if (player1.Minerals > minerals)
+                {
+                    player1.UndoLastMove();
+                }
+
+                while (player2.Minerals < minerals)
+                {
+                    player2.AddRandomMove();
+                }
+                if (player2.Minerals > player1.Minerals)
+                {
+                    player2.UndoLastMove();
+                }
+            }
+            await PlayService.PlayAsync(game, logger, shuffle);
+
+            return (new int[2][] { player1.Moves.ToArray(), player2.Moves.ToArray() }, new double[2] { game.ArmyValueKilledTeam1, game.ArmyValueKilledTeam2 });
         }
 
         public static void CleanUpPath()
@@ -149,7 +245,7 @@ namespace Game
                 options.IncludeScopes = true;
                 options.SingleLine = true;
                 options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
-            }).SetMinimumLevel(LogLevel.Error);
+            }).SetMinimumLevel(LogLevel.Information);
         });
 
         public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();

@@ -27,7 +27,6 @@ public class PaxgameController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<double>> GenerateResult([FromBody] AiRequest request)
     {
-        List<int> State = new List<int>();
         Player player1 = new Player() { Team = 1, Race = Race.Terran };
         Player player2 = new Player() { Team = 2, Race = Race.Zerg };
 
@@ -50,10 +49,12 @@ public class PaxgameController : ControllerBase
 
         await PlayService.PlayAsync(game, _logger);
 
-        var p1 = player2.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam1 * 100.0 / player2.ArmyValue, 2);
-        var p2 = player1.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam2 * 100.0 / player1.ArmyValue, 2);
+        //var p1 = player2.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam1 * 100.0 / player2.ArmyValue, 2);
+        //var p2 = player1.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam2 * 100.0 / player1.ArmyValue, 2);
 
-        int reward = Convert.ToInt32(p1 - p2);
+        //int reward = Convert.ToInt32(p1 - p2);
+
+        double reward = game.ArmyValueKilledTeam1 > game.ArmyValueKilledTeam2 ? 1 : 0;
 
         return reward;
     }

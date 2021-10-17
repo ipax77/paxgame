@@ -237,10 +237,9 @@ namespace Game.Models
                         return;
                     }
                 }
-                var rotation = GameService.GetRandomDirection();
-                //var newdirection = GameService.RotatePoint(direction, Vector2.Zero, rotation);
-                //var move = newdirection * (float)speed;
-                //newpos = new Vector2(Position.X + move.X, Position.Y + move.Y);
+                // var rotation = GameService.GetRandomDirection();
+                var rotation = GameService.directions[i];
+
                 var newdirection = GameService.RotatePoint(target, Position, rotation);
                 newpos = GameService.MoveTowards(Position, newdirection, (float)Math.Min(distance, speed));
                 newIntpos = GetIntPos(newpos);

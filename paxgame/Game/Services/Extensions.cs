@@ -3,7 +3,7 @@ namespace Game.Services
 {
     public static class Extensions
     {
-        private static Random rng = new Random();
+        private static Random rng = new Random(77);
 
         public static void Shuffle<T>(this IList<T> list)
         {

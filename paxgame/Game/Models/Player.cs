@@ -60,7 +60,13 @@ namespace Game.Models
 
         public Unit? AddRandomMove()
         {
-            int move = random_except_list((PaxGame.buildX - 1) * (PaxGame.buildY - 1) * PaxGame.ZergUnits, GetExceptList());
+            int units = Race switch
+            {
+                Race.Terran => PaxGame.TerranUnits,
+                Race.Zerg => PaxGame.ZergUnits,
+                _ => PaxGame.TerranUnits
+            };
+            int move = random_except_list((PaxGame.buildX - 1) * (PaxGame.buildY - 1) * units, GetExceptList());
             return AddMove(move);
         }
 

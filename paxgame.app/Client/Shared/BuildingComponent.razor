@@ -50,6 +50,17 @@ else
 		<button type="button" class="btn btn-sm btn-primary" @onclick="@(async() => Animate())">Anim</button>
 	</div>
 *@
+
+	<div>
+		<div class="form-group">
+			<input type="text" @bind="@player1Moves" />
+		</div>
+		<div class="form-group">
+			<input type="text" @bind="@player2Moves" />
+		</div>
+		<button type="button" class="btn btn-primary" @onclick="SetPlayerMoves">Set</button>
+	</div>
+
 	@if (playerService.AvailabelUnits != null)
 	{
 		<UnitSelectComponent Units="playerService.AvailabelUnits" onUnitSelected="UnitSelected"></UnitSelectComponent>
