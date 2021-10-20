@@ -73,6 +73,8 @@ class paxgame5Env(gym.Env):
         self.force_mag = 10.0
         self.tau = 0.02  # seconds between state updates
         self.kinematics_integrator = "euler"
+        self.numsteps = 0
+        self.maxsteps = 200
 
         # Angle at which to fail the episode
         self.theta_threshold_radians = 12 * 2 * math.pi / 360
@@ -107,6 +109,7 @@ class paxgame5Env(gym.Env):
         err_msg = "%r (%s) invalid" % (action, type(action))
         assert self.action_space.contains(action), err_msg
 
+        self.numsteps = self.numsteps + 1
         x, x_dot, theta, theta_dot = self.state
         force = self.force_mag if action == 1 else -self.force_mag
         costheta = math.cos(theta)
@@ -159,10 +162,14 @@ class paxgame5Env(gym.Env):
             self.steps_beyond_done += 1
             reward = 0.0
 
+        if self.numsteps >= self.maxsteps:
+            done = True
+            
         return np.array(self.state, dtype=np.float32), reward, done, {}
 
     def reset(self):
         self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
+        self.numsteps = 0
         self.steps_beyond_done = None
         return np.array(self.state, dtype=np.float32)
 
