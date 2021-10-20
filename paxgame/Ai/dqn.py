@@ -20,13 +20,13 @@ env = gym.make("paxgame4-v0")
 # high = env.observation_space.high
 
 modelpath = '/data/ai/models/'
-modelname = 'dqntest4'
+modelname = 'dqnboardmechanics'
 
 class DDDQN(tf.keras.Model):
     def __init__(self):
       super(DDDQN, self).__init__()
-      self.d1 = tf.keras.layers.Dense(1024, activation='relu')
-      self.d2 = tf.keras.layers.Dense(1024, activation='relu')
+      self.d1 = tf.keras.layers.Dense(1125, activation='relu')
+      self.d2 = tf.keras.layers.Dense(1125, activation='relu')
       self.v = tf.keras.layers.Dense(1, activation=None)
       self.a = tf.keras.layers.Dense(env.action_space.n, activation=None)
 
@@ -77,7 +77,7 @@ class exp_replay():
 
 
 class agent():
-      def __init__(self, gamma=0.99, replace=200, lr=0.001):
+      def __init__(self, gamma=0.99, replace=100, lr=0.0005):
           self.gamma = gamma
           self.epsilon = 1.0
           # self.min_epsilon = 0.01
@@ -88,7 +88,7 @@ class agent():
           self.trainstep = 0
           self.memory = exp_replay()
           # self.batch_size = 64
-          self.batch_size = 128
+          self.batch_size = 64
           self.q_net = DDDQN()
           self.target_net = DDDQN()
           opt = tf.keras.optimizers.Adam(learning_rate=lr)
@@ -180,7 +180,7 @@ def show(results, size=500, title='Moving average of game outcomes',
     plt.show()
 
 agentoo7 = agent()
-steps = 8000
+steps = 80000
 gameresults = []
 th = ((env.observation_space.n / 2) - 3) * 2 * 0.8
 print(th)
@@ -192,13 +192,13 @@ for s in range(steps):
   actions = []
   rngactions = []
   player = 1
-#   if s == 40:
-#     agentoo7.q_net.load_weights(modelpath + modelname + str(env.action_space.n) + '.h5')
+  if s == 40:
+    agentoo7.q_net.load_weights(modelpath + modelname + str(env.action_space.n) + '.h5')
   if s % 1000 == 0:
     agentoo7.q_net.save_weights(modelpath + modelname + str(env.action_space.n) + '_' + str(s) + '.h5')
 
   while not done:
-    #env.render()
+    # print(env.render())
     # action = agentoo7.act_filtered(state, env.legal_moves())
     if player == +1:
         action = agentoo7.act(state)
@@ -215,7 +215,7 @@ for s in range(steps):
         for m in range(len(dotnetmoves)):
             # action = np.random.choice([i for i in range(0, env.action_space.n) if i not in rngactions])
             action = dotnetmoves[m]
-            rngactions += env.rng_actions_block(action)
+            # rngactions += env.rng_actions_block(action)
             next_state, reward, done, _ = env.step(player, action)
             # if reward == -1:
             #     print("indahouse2")
@@ -224,9 +224,9 @@ for s in range(steps):
     player = player * -1
 
     if done:
-        if total_reward > 500:
+        if total_reward > 10:
             gameresults.append(1)
-        elif total_reward < 0:
+        elif total_reward < 5:
             gameresults.append(-1)
         else:
             gameresults.append(0)        

@@ -49,13 +49,15 @@ public class PaxgameController : ControllerBase
 
         await PlayService.PlayAsync(game, _logger);
 
-        //var p1 = player2.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam1 * 100.0 / player2.ArmyValue, 2);
-        //var p2 = player1.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam2 * 100.0 / player1.ArmyValue, 2);
+        var p1 = player2.ArmyValue == 0 ? 0 : game.ArmyValueKilledTeam1 / player2.ArmyValue;
+        // var p2 = player1.ArmyValue == 0 ? 0 : Math.Round(game.ArmyValueKilledTeam2 * 100.0 / player1.ArmyValue, 2);
 
         //int reward = Convert.ToInt32(p1 - p2);
-
-        double reward = game.ArmyValueKilledTeam1 > game.ArmyValueKilledTeam2 ? 1 : 0;
-
+        double reward = 1.0;
+        if (game.ArmyValueKilledTeam1 > game.ArmyValueKilledTeam2)
+        {
+            reward =  p1 > 0.65 ? 3.0 : 2.0;
+        }
         return reward;
     }
 

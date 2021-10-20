@@ -1,0 +1,6 @@
+setup.py
+gym_paxgame5.egg-info/PKG-INFO
+gym_paxgame5.egg-info/SOURCES.txt
+gym_paxgame5.egg-info/dependency_links.txt
+gym_paxgame5.egg-info/requires.txt
+gym_paxgame5.egg-info/top_level.txt

@@ -32,9 +32,14 @@ class paxgame4Env(gym.Env):
         self.players = { +1: Player("Terran"), -1: Player("Zerg") }
         self.uuid = str(uuid.uuid4())
     
-    def unit_move(self, action):
+    def unit_move(self, action, race):
         unit, move = divmod(action, xy)
-        return int(unit+1), int(move)
+        mod = 1
+        if race == "Zerg":
+            mod = 100
+        elif race == "Protoss":
+            mod = 200
+        return int((unit+1)*mod), int(move)
 
     def rng_actions_block(self, action):
         unit, move = divmod(action, xy)
@@ -52,10 +57,10 @@ class paxgame4Env(gym.Env):
         # self.state[mymove + moves] = myunit
         
         # print (str(self.round) + "|" + str(xy * 2 - 3))
-        done = self.round > 30
+        done = self.round > 15
 
-        unit, move = self.unit_move(action)
         splayer = self.players[player]
+        unit, move = self.unit_move(action, splayer.race)
         units = terranunits
         if splayer.race == "Zerg":
             units = zergunits
@@ -68,11 +73,12 @@ class paxgame4Env(gym.Env):
             # self.state = np.concatenate((splayer.state, self.players[player * -1].state), axis=0)
             self.state = np.concatenate((self.players[+1].state, self.players[-1].state), axis=0)
             splayer.actions.append(int(action))
-            reward = self.step_reward(unit, move)
+            reward = 1 # train mechanics only
+            # reward = self.step_reward(unit, move)
             for i in range(units):
                 splayer.mask[i * xy + move] = 1
 
-        if player == -1:
+        if player == 1:
             # reward *= -1
             self.round = self.round + 1
 
@@ -115,8 +121,8 @@ class paxgame4Env(gym.Env):
             rowa = ""
             rowb = ""
             for j in range(x):
-                rowa += " " + str(self.players[+1].state[i * x + j]) + " |"
-                rowb += " " + str(self.players[-1].state[i * x + j]) + " |"
+                rowa += " " + str(int(self.players[+1].state[i * x + j])) + " |"
+                rowb += " " + str(int(self.players[-1].state[i * x + j])) + " |"
             board += "|" + rowa + " X |" + rowb + "\n"
         return board
 
